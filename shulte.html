@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажёр ингибиторного контроля</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Фоновые круги -->
+    <div class="background-circles">
+        <!-- Левый нижний угол - треугольник из кругов -->
+        <div class="circle circle-blue-left"></div>
+        <div class="circle circle-lightblue-left"></div>
+        <div class="circle circle-purple-left"></div>
+
+        <!-- Правый нижний угол - треугольник из кругов -->
+        <div class="circle circle-blue-right"></div>
+        <div class="circle circle-lightblue-right"></div>
+        <div class="circle circle-purple-right"></div>
+    </div>
+
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="showScreen('home')">Главная</button>
+            <button class="nav-btn" onclick="showScreen('tests')">Тестирование</button>
+            <button class="nav-btn" onclick="restartAllTests()">Повторное тестирование</button>
+            <button class="nav-btn" onclick="showScreen('results')">Результат</button>
+            <button class="nav-btn" id="auth-btn" onclick="showRegisterModal()">Авторизация</button>
+        </div>
+    </div>
+
+    <!-- Имя пользователя -->
+    <div class="user-name" id="user-name" style="display: none;"></div>
+
+    <!-- Окно регистрации -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <h2>Регистрация</h2>
+            <form id="register-form">
+                <input type="text" id="user-fio" placeholder="Введите ФИО" required>
+                <button type="submit">Начать</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Главная страница -->
+        <div id="home-screen" class="screen active">
+            <div class="header">
+                <h1>Тренажёр ингибиторного контроля</h1>
+                <p>Помогает мозгу замедлиться и выбрать осознанное действие</p>
+            </div>
+
+            <div class="content">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Первичная диагностика</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Тренировка</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Повторная диагностика</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Сравнение результатов</div>
+                    </div>
+                </div>
+
+                <button id="start-test" class="start-btn">Начать тестирование</button>
+            </div>
+        </div>
+
+        <!-- Выбор тестов -->
+        <div id="tests-screen" class="screen">
+            <div class="header">
+                <h2>Выбор тестов</h2>
+                <p>Начните с любого теста. Пройденные тесты становятся неактивными</p>
+            </div>
+
+            <div class="tests-grid">
+                <div class="test-card active" onclick="startTest('schulte')" id="test-schulte">
+                    <div class="test-icon">🔢</div>
+                    <h3>Таблица Шульте</h3>
+                    <p>2 раунда по 25 цифр</p>
+                    <div class="test-status" id="schulte-status">Не начат</div>
+                </div>
+
+                <div class="test-card active" onclick="startTest('traffic')" id="test-traffic">
+                    <div class="test-icon">🎨</div>
+                    <h3>Цветовая реакция</h3>
+                    <p>40 заданий на цвета</p>
+                    <div class="test-status" id="traffic-status">Не начат</div>
+                </div>
+
+                <div class="test-card active" onclick="startTest('gonogo')" id="test-gonogo">
+                    <div class="test-icon">⚡</div>
+                    <h3>Go/No-Go</h3>
+                    <p>40 заданий на реакцию</p>
+                    <div class="test-status" id="gonogo-status">Не начат</div>
+                </div>
+            </div>
+
+            <div class="tests-footer">
+                <button onclick="showScreen('home')" class="back-btn">На главную</button>
+                <button onclick="checkAllTestsCompleted()" class="start-btn" id="view-results-btn" disabled>Посмотреть результаты</button>
+            </div>
+        </div>
+
+        <!-- Инструкция -->
+        <div id="instruction-screen" class="screen">
+            <div class="header">
+                <h2 id="instruction-title">Инструкция</h2>
+            </div>
+
+            <div class="instruction-content">
+                <div id="instruction-text"></div>
+                <div class="instruction-buttons">
+                    <button onclick="showScreen('tests')" class="back-btn">Назад</button>
+                    <button id="start-game" class="start-btn">Начать тест</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Таблица Шульте -->
+        <div id="schulte-screen" class="screen">
+            <div class="game-header">
+                <h2>Таблица Шульте</h2>
+                <div class="game-info">
+                    <span>Раунд: <span id="schulte-round">1</span>/2</span>
+                    <span>Цифра: <span id="current-target">1</span></span>
+                    <span>Время: <span id="schulte-timer">00:00</span></span>
+                </div>
+            </div>
+
+            <div class="game-layout">
+                <div class="rules-panel" id="schulte-rules">
+                    <h3>📋 Правила</h3>
+                    <p>• Нажимайте цифры от 1 до 25 по порядку</p>
+                    <p>• Первый раунд - обычный</p>
+                    <p>• Второй раунд - с отвлекающим видео</p>
+                    <p>• Старайтесь работать максимально быстро</p>
+                    <p class="important">• Во втором раунде игнорируйте видео!</p>
+                </div>
+
+                <div class="game-main">
+                    <div class="schulte-container">
+                        <div class="schulte-grid" id="schulte-grid"></div>
+                        <button id="start-schulte" class="start-btn">Начать раунд</button>
+                    </div>
+                </div>
+
+                <!-- Видео теперь внутри game-layout в правой части -->
+                <div class="video-sidebar" id="video-sidebar">
+                    <div class="video-container">
+                        <iframe id="background-video"
+                                src="https://rutube.ru/play/embed/c71a722e6f74234eba54043ca507572b/"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-footer">
+                <button onclick="backToTests()" class="back-btn">← Назад к тестам</button>
+            </div>
+        </div>
+
+        <!-- Цветовая реакция -->
+        <div id="traffic-screen" class="screen">
+            <div class="game-header">
+                <h2>Цветовая реакция</h2>
+                <div class="game-info">
+                    <span>Прогресс: <span id="traffic-progress">0</span>/40</span>
+                    <span>Время: <span id="traffic-timer">00:00</span></span>
+                    <span>Точность: <span id="traffic-accuracy">0%</span></span>
+                </div>
+            </div>
+
+            <div class="game-layout">
+                <div class="rules-panel">
+                    <h3>📋 Правила</h3>
+                    <p>• Определяйте ЦВЕТ круга (не текст!)</p>
+                    <p>• Выбирайте правильный цвет из предложенных</p>
+                    <p>• Всего 40 заданий</p>
+                    <p>• Отвечайте быстро и точно</p>
+                    <p class="important">• Игнорируйте текст в центре круга!</p>
+                </div>
+
+                <div class="game-main">
+                    <div class="traffic-container">
+                        <div class="color-display" id="color-display">
+                            <span id="color-text">Красный</span>
+                        </div>
+                        <div class="color-options" id="color-options"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-footer">
+                <button onclick="backToTests()" class="back-btn">← Назад к тестам</button>
+            </div>
+        </div>
+
+        <!-- Go/No-Go -->
+        <div id="gonogo-screen" class="screen">
+            <div class="game-header">
+                <h2>Go/No-Go</h2>
+                <div class="game-info">
+                    <span>Прогресс: <span id="gonogo-progress">0</span>/40</span>
+                    <span>Время: <span id="gonogo-timer">00:00</span></span>
+                    <span>Точность: <span id="gonogo-accuracy">0%</span></span>
+                </div>
+            </div>
+
+            <div class="game-layout">
+                <div class="rules-panel" id="gonogo-rules">
+                    <h3>📋 Правила</h3>
+                    <div id="gonogo-rule-text">
+                        <p>• Следите за фоном!</p>
+                        <p>• <span style="color: #3498db;">СИНИЙ фон</span> → нажимайте стрелку в ТУ ЖЕ сторону</p>
+                        <p>• <span style="color: #e74c3c;">ЛЮБОЙ другой фон</span> → нажимайте в ПРОТИВОПОЛОЖНУЮ сторону</p>
+                        <p>• Всего 40 заданий</p>
+                        <p>• Отвечайте быстро и точно</p>
+                    </div>
+                </div>
+
+                <div class="game-main">
+                    <div class="gonogo-container">
+                        <div class="arrow-display" id="arrow-display">
+                            <div class="arrow" id="arrow-symbol">➡️</div>
+                        </div>
+                        <div class="arrow-controls">
+                            <button class="arrow-btn left-arrow" onclick="handleArrow('left')">
+                                <div class="arrow-icon">⟨</div>
+                            </button>
+                            <button class="arrow-btn right-arrow" onclick="handleArrow('right')">
+                                <div class="arrow-icon">⟩</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-footer">
+                <button onclick="backToTests()" class="back-btn">← Назад к тестам</button>
+            </div>
+        </div>
+
+        <!-- Результаты -->
+        <div id="results-screen" class="screen">
+            <div class="header">
+                <h2>Результаты тестирования</h2>
+                <p>Анализ ваших когнитивных способностей</p>
+            </div>
+
+            <div class="results-content">
+                <div class="overall-score">
+                    <div class="score-card">
+                        <div class="score-icon">🏆</div>
+                        <div class="score-value" id="overall-score">0</div>
+                        <div class="score-label">Общий балл</div>
+                    </div>
+                </div>
+
+                <div class="skills-analysis">
+                    <h3>Анализ навыков</h3>
+                    <div class="skill-bars">
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Внимание</span>
+                                <span class="skill-percent" id="attention-percent">0%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-fill" id="attention-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Ингибиция</span>
+                                <span class="skill-percent" id="inhibition-percent">0%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-fill" id="inhibition-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Реакция</span>
+                                <span class="skill-percent" id="reaction-percent">0%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-fill" id="reaction-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detailed-results">
+                    <div class="result-section">
+                        <h3>🔢 Таблица Шульте</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Раунд 1 (базовый):</span>
+                                <span class="result-value" id="result-schulte1">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Раунд 2 (с видео):</span>
+                                <span class="result-value" id="result-schulte2">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Разница:</span>
+                                <span class="result-value" id="result-schulte-diff">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3>🎨 Цветовая реакция</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Правильные ответы:</span>
+                                <span class="result-value" id="result-traffic-correct">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Точность:</span>
+                                <span class="result-value" id="result-traffic">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3>⚡ Go/No-Go</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Правильные ответы:</span>
+                                <span class="result-value" id="result-gonogo-correct">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Точность:</span>
+                                <span class="result-value" id="result-gonogo">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recommendations-section">
+                    <h3>💡 Рекомендации по развитию</h3>
+                    <div class="recommendations-content" id="recommendations-text">
+                        <p>Пройдите все тесты для получения полного анализа</p>
+                    </div>
+                </div>
+
+                <div class="results-actions">
+                    <button onclick="restartAllTests()" class="start-btn">🔄 Пройти заново</button>
+                    <button onclick="showScreen('home')" class="back-btn">На главную</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
